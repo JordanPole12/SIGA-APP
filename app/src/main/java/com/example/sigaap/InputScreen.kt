@@ -1,5 +1,11 @@
 package com.example.sigaap
 
+/**
+ * BAGIAN: VIEW - INPUT DATA
+ * File ini menangani tampilan Form untuk menginput data pelanggaran atau prestasi.
+ * Layar ini mengirimkan data yang diketik user ke ViewModel untuk diolah.
+ */
+
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -25,10 +31,15 @@ import com.example.sigaap.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InputCatatanScreen(viewModel: PelanggaranViewModel, onBack: () -> Unit) {
+fun InputCatatanScreen(
+    viewModel: PelanggaranViewModel, // Menghubungkan View dengan Logika (ViewModel)
+    onBack: () -> Unit // Menghubungkan View ini kembali ke Navigasi Utama (SigaapUI)
+) {
     val context = LocalContext.current
     var expandedKelas by remember { mutableStateOf(false) }
     var expandedKategori by remember { mutableStateOf(false) }
+    
+    // Mengecek apakah sedang mode Edit atau Tambah Baru
     val isEdit = viewModel.editingId.value != null
 
     Column(
@@ -36,6 +47,7 @@ fun InputCatatanScreen(viewModel: PelanggaranViewModel, onBack: () -> Unit) {
             .fillMaxSize()
             .background(Color(0xFFF5F6F8))
     ) {
+        // --- HEADER ---
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -58,6 +70,7 @@ fun InputCatatanScreen(viewModel: PelanggaranViewModel, onBack: () -> Unit) {
             }
         }
 
+        // --- FORM INPUT ---
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -75,6 +88,7 @@ fun InputCatatanScreen(viewModel: PelanggaranViewModel, onBack: () -> Unit) {
                         Text("Pilih Tipe Catatan", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = GrayText)
                         Spacer(modifier = Modifier.height(12.dp))
                         
+                        // Menghubungkan pilihan tipe ke State di ViewModel
                         SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                             SegmentedButton(
                                 selected = viewModel.tipeCatatan.value == TipeCatatan.PELANGGARAN,
@@ -102,6 +116,7 @@ fun InputCatatanScreen(viewModel: PelanggaranViewModel, onBack: () -> Unit) {
 
                         Spacer(modifier = Modifier.height(24.dp))
 
+                        // --- INPUT IDENTITAS SISWA ---
                         Text("Informasi Siswa", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = GrayText)
                         Spacer(modifier = Modifier.height(12.dp))
 
@@ -132,6 +147,7 @@ fun InputCatatanScreen(viewModel: PelanggaranViewModel, onBack: () -> Unit) {
 
                         Spacer(modifier = Modifier.height(12.dp))
 
+                        // Dropdown Kelas: Mengambil data statis dari MasterData
                         ExposedDropdownMenuBox(
                             expanded = expandedKelas,
                             onExpandedChange = { expandedKelas = !expandedKelas }
@@ -157,9 +173,11 @@ fun InputCatatanScreen(viewModel: PelanggaranViewModel, onBack: () -> Unit) {
 
                         Spacer(modifier = Modifier.height(24.dp))
 
+                        // --- INPUT DETAIL CATATAN ---
                         Text("Detail Catatan", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = GrayText)
                         Spacer(modifier = Modifier.height(12.dp))
 
+                        // Mengambil list kategori dari ViewModel (yang sudah diambil dari Database)
                         val kategoriList = if (viewModel.tipeCatatan.value == TipeCatatan.PELANGGARAN) 
                             viewModel.listKategoriPelanggaran 
                         else 
@@ -210,12 +228,14 @@ fun InputCatatanScreen(viewModel: PelanggaranViewModel, onBack: () -> Unit) {
                 }
             }
 
+            // --- TOMBOL SIMPAN ---
             item {
                 Button(
                     onClick = {
+                        // Menjalankan Logika Simpan yang ada di ViewModel
                         viewModel.simpanCatatan {
                             Toast.makeText(context, if (isEdit) "Data diperbarui!" else "Data berhasil disimpan!", Toast.LENGTH_SHORT).show()
-                            onBack()
+                            onBack() // Navigasi kembali setelah sukses
                         }
                     },
                     modifier = Modifier.fillMaxWidth().height(60.dp),
@@ -248,3 +268,4 @@ fun InputCatatanScreen(viewModel: PelanggaranViewModel, onBack: () -> Unit) {
         }
     }
 }
+

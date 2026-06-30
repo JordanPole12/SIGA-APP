@@ -5,6 +5,11 @@ import androidx.room.PrimaryKey
 import java.util.UUID
 
 /**
+ * MODEL LAYER: Definisi Data
+ * File ini berisi semua data class yang mendefinisikan struktur informasi dalam aplikasi.
+ */
+
+/**
  * Tipe Catatan: Pelanggaran (Poin Minus) atau Prestasi (Poin Plus)
  */
 enum class TipeCatatan {
@@ -12,7 +17,9 @@ enum class TipeCatatan {
 }
 
 /**
- * Model data utama untuk entitas Catatan Siswa (Pelanggaran & Prestasi).
+ * ENTITY: CatatanSiswa
+ * Merepresentasikan satu entitas catatan aktivitas siswa di database.
+ * Digunakan untuk menyimpan riwayat pelanggaran atau prestasi.
  */
 @Entity(tableName = "catatan_siswa")
 data class CatatanSiswa(
@@ -30,7 +37,8 @@ data class CatatanSiswa(
 )
 
 /**
- * Model untuk kategori (Pelanggaran/Prestasi) beserta poinnya.
+ * ENTITY: KategoriCatatan
+ * Merepresentasikan referensi kategori (misal: "Terlambat", "Juara Lomba") beserta bobot poinnya.
  */
 @Entity(tableName = "kategori_catatan")
 data class KategoriCatatan(
@@ -38,23 +46,28 @@ data class KategoriCatatan(
     val id: Int = 0,
     val nama: String,
     val poin: Int,
-    val tipe: TipeCatatan, // Added type to distinguish in DB
+    val tipe: TipeCatatan, // Membedakan kategori pelanggaran vs prestasi
     val deskripsi: String = ""
 ) {
     override fun toString(): String = "$nama ($poin Poin)"
 }
 
 /**
- * Model Profil Guru
+ * DATA CLASS: GuruProfile
+ * Struktur data untuk informasi profil pengguna (Guru) yang sedang aktif.
  */
 data class GuruProfile(
     val nama: String = "",
     val nip: String = "",
     val jabatan: String = "",
     val email: String = "",
-    val fotoResId: Int? = null // Dummy untuk UI
+    val fotoResId: Int? = null 
 )
 
+/**
+ * DATA STATIS: MasterData
+ * Berisi data awal (seed data) untuk mengisi aplikasi saat pertama kali dijalankan.
+ */
 object MasterData {
     val daftarPelanggaran = listOf(
         KategoriCatatan(nama = "Terlambat", poin = 5, tipe = TipeCatatan.PELANGGARAN, deskripsi = "Datang setelah bel masuk berbunyi"),
@@ -88,3 +101,4 @@ object MasterData {
         "Penggunaan smartphone hanya diperbolehkan atas izin guru pengajar."
     )
 }
+

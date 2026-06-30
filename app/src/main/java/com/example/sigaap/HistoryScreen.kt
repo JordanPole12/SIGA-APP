@@ -20,8 +20,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sigaap.ui.theme.*
 
+/**
+ * VIEW LAYER: RiwayatCatatanScreen
+ * Menampilkan daftar seluruh catatan (pelanggaran/prestasi) yang tersimpan di database.
+ * 
+ * Implementasi MVVM:
+ * - Mengamati state dari [PelanggaranViewModel].
+ * - Mengirimkan event ke ViewModel untuk penghapusan data.
+ * - Mengatur state navigasi kembali ke InputScreen untuk proses edit.
+ */
 @Composable
 fun RiwayatCatatanScreen(viewModel: PelanggaranViewModel, onNavigateToInput: () -> Unit) {
+    // State lokal untuk query pencarian (View Logic)
     var searchQuery by remember { mutableStateOf("") }
     
     Column(
@@ -29,6 +39,7 @@ fun RiwayatCatatanScreen(viewModel: PelanggaranViewModel, onNavigateToInput: () 
             .fillMaxSize()
             .background(Color(0xFFF5F6F8))
     ) {
+        // Header dengan Search Bar
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -42,6 +53,7 @@ fun RiwayatCatatanScreen(viewModel: PelanggaranViewModel, onNavigateToInput: () 
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
+                // Input pencarian untuk memfilter daftar secara real-time
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
@@ -65,6 +77,11 @@ fun RiwayatCatatanScreen(viewModel: PelanggaranViewModel, onNavigateToInput: () 
             }
         }
 
+        /**
+         * LOGIKA FILTER:
+         * Mengambil data dari ViewModel [viewModel.getFilteredCatatan()] dan menyaringnya
+         * berdasarkan input pencarian user.
+         */
         val list = viewModel.getFilteredCatatan().filter {
             val q = searchQuery.lowercase()
             it.namaSiswa.lowercase().contains(q) || 
@@ -72,11 +89,14 @@ fun RiwayatCatatanScreen(viewModel: PelanggaranViewModel, onNavigateToInput: () 
             it.judulCatatan.lowercase().contains(q) ||
             it.nisn.contains(q)
         }
+
+        // Tampilan State Kosong
         if (list.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Tidak ada riwayat untuk ditampilkan.", color = GrayText)
             }
         } else {
+            // List Scrollable menggunakan LazyColumn untuk performa tinggi
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(16.dp),
@@ -86,10 +106,14 @@ fun RiwayatCatatanScreen(viewModel: PelanggaranViewModel, onNavigateToInput: () 
                     HistoryCard(
                         item = item,
                         onEdit = {
+                            // Alur Edit: Siapkan data di VM lalu pindah layar
                             viewModel.prepareEdit(item)
                             onNavigateToInput()
                         },
-                        onDelete = { viewModel.hapusCatatan(item.id) }
+                        onDelete = { 
+                            // Alur Hapus: Langsung panggil fungsi repository di VM
+                            viewModel.hapusCatatan(item.id) 
+                        }
                     )
                 }
             }
@@ -97,12 +121,17 @@ fun RiwayatCatatanScreen(viewModel: PelanggaranViewModel, onNavigateToInput: () 
     }
 }
 
+/**
+ * Komponen UI untuk item riwayat tunggal.
+ * Menangani visualisasi tipe (Pelanggaran vs Prestasi) dan aksi (Edit/Delete).
+ */
 @Composable
 fun HistoryCard(item: CatatanSiswa, onEdit: () -> Unit, onDelete: () -> Unit) {
     val isPelanggaran = item.tipe == TipeCatatan.PELANGGARAN
     var showMenu by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
 
+    // Dialog Konfirmasi sebelum penghapusan permanen
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
@@ -134,6 +163,7 @@ fun HistoryCard(item: CatatanSiswa, onEdit: () -> Unit, onDelete: () -> Unit) {
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Ikon indikator tipe catatan
             Box(
                 modifier = Modifier
                     .size(44.dp)
@@ -151,12 +181,15 @@ fun HistoryCard(item: CatatanSiswa, onEdit: () -> Unit, onDelete: () -> Unit) {
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
+            
+            // Informasi Siswa
             Column(modifier = Modifier.weight(1f)) {
                 Text(item.namaSiswa, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = DarkNavyBackground, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text("${item.kelas} • ${item.judulCatatan}", fontSize = 12.sp, color = GrayText, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(item.tanggalInput, fontSize = 10.sp, color = GrayText.copy(alpha = 0.6f))
             }
             
+            // Poin dan Menu Aksi
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     "${if (isPelanggaran) "-" else "+"}${item.poin}",
@@ -169,6 +202,7 @@ fun HistoryCard(item: CatatanSiswa, onEdit: () -> Unit, onDelete: () -> Unit) {
                     IconButton(onClick = { showMenu = true }) {
                         Icon(Icons.Default.MoreVert, null, tint = GrayText, modifier = Modifier.size(20.dp))
                     }
+                    // Menu Dropdown untuk Edit dan Hapus
                     DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
                         DropdownMenuItem(
                             text = { Text("Edit") },
@@ -186,3 +220,4 @@ fun HistoryCard(item: CatatanSiswa, onEdit: () -> Unit, onDelete: () -> Unit) {
         }
     }
 }
+

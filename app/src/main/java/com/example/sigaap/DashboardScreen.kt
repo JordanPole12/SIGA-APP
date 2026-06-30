@@ -1,5 +1,11 @@
 package com.example.sigaap
 
+/**
+ * BAGIAN: VIEW - DASHBOARD
+ * File ini menangani tampilan utama setelah login, yaitu ringkasan data dan tombol cepat.
+ * Menampilkan statistik (Logika dari ViewModel) dan daftar singkat catatan terbaru.
+ */
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -24,9 +30,14 @@ import androidx.compose.ui.unit.sp
 import com.example.sigaap.ui.theme.*
 
 @Composable
-fun GuruDashboardScreen(viewModel: PelanggaranViewModel, onNavigateToInput: () -> Unit) {
+fun GuruDashboardScreen(
+    viewModel: PelanggaranViewModel, // Menghubungkan ke Otak (ViewModel)
+    onNavigateToInput: () -> Unit // Menghubungkan ke Navigasi Utama
+) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val currentTipe = if (selectedTab == 0) TipeCatatan.PELANGGARAN else TipeCatatan.PRESTASI
+    
+    // LOGIKA: Filter data berdasarkan tab yang dipilih
     val list = viewModel.getFilteredCatatan().filter { it.tipe == currentTipe }
 
     Box(
@@ -39,6 +50,7 @@ fun GuruDashboardScreen(viewModel: PelanggaranViewModel, onNavigateToInput: () -
         ) {
             item {
                 Box(modifier = Modifier.fillMaxWidth()) {
+                    // --- HEADER BERGRADASI ---
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -81,6 +93,7 @@ fun GuruDashboardScreen(viewModel: PelanggaranViewModel, onNavigateToInput: () -
                         
                         Spacer(modifier = Modifier.height(24.dp))
                         
+                        // --- TAB PEMILIH (PELANGGARAN / PRESTASI) ---
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
@@ -97,6 +110,7 @@ fun GuruDashboardScreen(viewModel: PelanggaranViewModel, onNavigateToInput: () -
 
                         Spacer(modifier = Modifier.height(20.dp))
 
+                        // --- TOMBOL INPUT CEPAT ---
                         Button(
                             onClick = { 
                                 viewModel.clearForm()
@@ -127,6 +141,7 @@ fun GuruDashboardScreen(viewModel: PelanggaranViewModel, onNavigateToInput: () -
 
                         Spacer(modifier = Modifier.height(16.dp))
 
+                        // --- KOLOM PENCARIAN ---
                         Surface(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(14.dp),
@@ -151,6 +166,7 @@ fun GuruDashboardScreen(viewModel: PelanggaranViewModel, onNavigateToInput: () -
 
                         Spacer(modifier = Modifier.height(20.dp))
 
+                        // --- BAGIAN STATISTIK: Data diambil dari Logika di ViewModel ---
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -174,6 +190,7 @@ fun GuruDashboardScreen(viewModel: PelanggaranViewModel, onNavigateToInput: () -
                 }
             }
 
+            // --- DAFTAR CATATAN TERBARU ---
             if (list.isEmpty()) {
                 item {
                     Box(modifier = Modifier.fillMaxWidth().height(150.dp), contentAlignment = Alignment.Center) {
@@ -249,6 +266,10 @@ fun StatCardImproved(label: String, value: String, modifier: Modifier = Modifier
     }
 }
 
+/**
+ * Komponen Card untuk menampilkan detail per siswa.
+ * Menghubungkan tombol Edit/Hapus ke Fungsi di ViewModel.
+ */
 @Composable
 fun CatatanSiswaCard(item: CatatanSiswa, onEdit: () -> Unit, onDelete: () -> Unit) {
     val isPelanggaran = item.tipe == TipeCatatan.PELANGGARAN
@@ -291,6 +312,7 @@ fun CatatanSiswaCard(item: CatatanSiswa, onEdit: () -> Unit, onDelete: () -> Uni
                 }
                 
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Badge status otomatis berdasarkan poin
                     if (isPelanggaran) {
                         val (status, badgeColor, textColor) = when {
                             item.poin >= 50 -> Triple("BERAT", Color(0xFFFFEBEE), Color(0xFFD32F2F))
@@ -318,6 +340,7 @@ fun CatatanSiswaCard(item: CatatanSiswa, onEdit: () -> Unit, onDelete: () -> Uni
                         }
                     }
                     
+                    // Menu Edit & Hapus
                     Box {
                         IconButton(onClick = { showMenu = true }) {
                             Icon(Icons.Default.MoreVert, null, tint = GrayText)
@@ -401,3 +424,4 @@ fun CatatanSiswaCard(item: CatatanSiswa, onEdit: () -> Unit, onDelete: () -> Uni
         }
     }
 }
+
