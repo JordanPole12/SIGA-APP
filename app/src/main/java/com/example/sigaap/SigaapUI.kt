@@ -1,5 +1,11 @@
 package com.example.sigaap
 
+/**
+ * BAGIAN: VIEW - NAVIGASI UTAMA
+ * File ini adalah pengatur lalu lintas (Router) aplikasi.
+ * Tugasnya: Menentukan layar mana yang harus muncul berdasarkan status login dan menu yang dipilih.
+ */
+
 import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -13,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.example.sigaap.ui.theme.*
 
 /**
- * Navigasi antar halaman
+ * Enumeration untuk daftar semua layar yang tersedia di aplikasi.
  */
 enum class Screen {
     Login, Dashboard, Input, Riwayat, BukuSaku, Profile
@@ -22,22 +28,26 @@ enum class Screen {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SigaapApp(viewModel: PelanggaranViewModel) {
+    // State untuk menyimpan layar mana yang sedang aktif saat ini
     var currentScreen by remember { mutableStateOf(if (viewModel.isLoggedIn.value) Screen.Dashboard else Screen.Login) }
 
-    // Memantau status login untuk navigasi otomatis
+    // Memantau status login: Jika logout, langsung tendang ke layar Login. Jika login, ke Dashboard.
     LaunchedEffect(viewModel.isLoggedIn.value) {
         currentScreen = if (viewModel.isLoggedIn.value) Screen.Dashboard else Screen.Login
     }
 
     if (!viewModel.isLoggedIn.value) {
+        // MENAMPILKAN VIEW LOGIN jika belum masuk
         LoginScreen(viewModel)
     } else {
+        // MENAMPILKAN VIEW UTAMA dengan Bottom Navigation Bar
         Scaffold(
             bottomBar = {
                 NavigationBar(
                     containerColor = DarkNavyBackground,
                     tonalElevation = 12.dp
                 ) {
+                    // Item Menu 1: Dashboard / Input
                     NavigationBarItem(
                         selected = currentScreen == Screen.Dashboard || currentScreen == Screen.Input,
                         onClick = { currentScreen = Screen.Dashboard },
@@ -57,6 +67,7 @@ fun SigaapApp(viewModel: PelanggaranViewModel) {
                             unselectedTextColor = White.copy(alpha = 0.5f)
                         )
                     )
+                    // Item Menu 2: Riwayat
                     NavigationBarItem(
                         selected = currentScreen == Screen.Riwayat,
                         onClick = { currentScreen = Screen.Riwayat },
@@ -70,6 +81,7 @@ fun SigaapApp(viewModel: PelanggaranViewModel) {
                             unselectedTextColor = White.copy(alpha = 0.5f)
                         )
                     )
+                    // Item Menu 3: Buku Saku
                     NavigationBarItem(
                         selected = currentScreen == Screen.BukuSaku,
                         onClick = { currentScreen = Screen.BukuSaku },
@@ -83,6 +95,7 @@ fun SigaapApp(viewModel: PelanggaranViewModel) {
                             unselectedTextColor = White.copy(alpha = 0.5f)
                         )
                     )
+                    // Item Menu 4: Profil
                     NavigationBarItem(
                         selected = currentScreen == Screen.Profile,
                         onClick = { currentScreen = Screen.Profile },
@@ -100,6 +113,7 @@ fun SigaapApp(viewModel: PelanggaranViewModel) {
             }
         ) { innerPadding ->
             Box(modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())) {
+                // LOGIKA PERPINDAHAN SCREEN (Konten Tengah)
                 AnimatedContent(
                     targetState = currentScreen,
                     transitionSpec = {
@@ -129,3 +143,4 @@ fun SigaapApp(viewModel: PelanggaranViewModel) {
         }
     }
 }
+

@@ -19,20 +19,33 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sigaap.ui.theme.*
 
+/**
+ * VIEW LAYER: BukuSakuScreen
+ * Menampilkan pedoman tata tertib, daftar kategori pelanggaran, dan prestasi.
+ * 
+ * Implementasi MVVM:
+ * - Mengakses state list (Tata Tertib, Kategori) dari [PelanggaranViewModel].
+ * - Menyediakan antarmuka untuk menambah/mengedit/menghapus aturan (CRUD statis di VM).
+ * - Menggunakan state internal untuk pengelolaan dialog dan form input sementara.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BukuSakuScreen(viewModel: PelanggaranViewModel) {
+    // State lokal untuk navigasi tab dan pencarian
     var selectedSection by remember { mutableIntStateOf(0) }
     var searchQuery by remember { mutableStateOf("") }
     
+    // State lokal untuk pengelolaan dialog tambah/edit
     var showAddDialog by remember { mutableStateOf(false) }
     var editIndex by remember { mutableStateOf<Int?>(null) }
     
+    // Form temporary state
     var ruleText by remember { mutableStateOf("") }
     var catNama by remember { mutableStateOf("") }
     var catPoin by remember { mutableStateOf("") }
     var catDesc by remember { mutableStateOf("") }
     
+    // Dialog Reusable untuk Tambah/Edit Aturan atau Kategori
     if (showAddDialog) {
         AlertDialog(
             onDismissRequest = { 
@@ -43,6 +56,7 @@ fun BukuSakuScreen(viewModel: PelanggaranViewModel) {
             title = { Text(if (editIndex == null) "Tambah Data" else "Edit Data") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // Form dinamis tergantung tab mana yang aktif
                     if (selectedSection == 0) {
                         OutlinedTextField(
                             value = ruleText,
@@ -75,6 +89,10 @@ fun BukuSakuScreen(viewModel: PelanggaranViewModel) {
             },
             confirmButton = {
                 Button(onClick = {
+                    /**
+                     * EVENT DISPATCH:
+                     * Mengirim data ke ViewModel untuk disimpan di state aplikasi.
+                     */
                     if (selectedSection == 0) {
                         if (ruleText.isNotBlank()) {
                             if (editIndex == null) viewModel.addRule(ruleText)
@@ -106,6 +124,7 @@ fun BukuSakuScreen(viewModel: PelanggaranViewModel) {
 
     Scaffold(
         floatingActionButton = {
+            // Tombol melayang untuk memicu dialog tambah data
             FloatingActionButton(
                 onClick = { showAddDialog = true },
                 containerColor = MaroonPrimary,
@@ -121,6 +140,7 @@ fun BukuSakuScreen(viewModel: PelanggaranViewModel) {
                 .padding(paddingValues)
                 .background(Color(0xFFF5F6F8))
         ) {
+            // Header dengan Tab Bar dan Search Bar
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -163,6 +183,7 @@ fun BukuSakuScreen(viewModel: PelanggaranViewModel) {
 
                     Spacer(modifier = Modifier.height(16.dp))
                     
+                    // Tab navigasi untuk filter konten (Tata Tertib, Pelanggaran, Prestasi)
                     SecondaryScrollableTabRow(
                         selectedTabIndex = selectedSection,
                         containerColor = Color.Transparent,
@@ -183,6 +204,10 @@ fun BukuSakuScreen(viewModel: PelanggaranViewModel) {
                 }
             }
 
+            /**
+             * LIST CONTENT:
+             * Menampilkan data berdasarkan tab yang aktif dan hasil pencarian.
+             */
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(16.dp),
@@ -190,7 +215,7 @@ fun BukuSakuScreen(viewModel: PelanggaranViewModel) {
             ) {
                 val q = searchQuery.lowercase()
                 when (selectedSection) {
-                    0 -> {
+                    0 -> { // Bagian Tata Tertib
                         val rules = viewModel.listTataTertib
                         itemsIndexed(rules) { index, rule ->
                             if (rule.lowercase().contains(q)) {
@@ -206,7 +231,7 @@ fun BukuSakuScreen(viewModel: PelanggaranViewModel) {
                             }
                         }
                     }
-                    1 -> {
+                    1 -> { // Bagian Kategori Pelanggaran
                         val items = viewModel.listKategoriPelanggaran
                         itemsIndexed(items) { index, item ->
                             if (item.nama.lowercase().contains(q) || item.deskripsi.lowercase().contains(q)) {
@@ -227,7 +252,7 @@ fun BukuSakuScreen(viewModel: PelanggaranViewModel) {
                             }
                         }
                     }
-                    2 -> {
+                    2 -> { // Bagian Kategori Prestasi
                         val items = viewModel.listKategoriPrestasi
                         itemsIndexed(items) { index, item ->
                             if (item.nama.lowercase().contains(q) || item.deskripsi.lowercase().contains(q)) {
@@ -249,12 +274,15 @@ fun BukuSakuScreen(viewModel: PelanggaranViewModel) {
                         }
                     }
                 }
-                item { Spacer(modifier = Modifier.height(80.dp)) }
+                item { Spacer(modifier = Modifier.height(80.dp)) } // Padding bawah agar FAB tidak menutupi item terakhir
             }
         }
     }
 }
 
+/**
+ * Komponen untuk menampilkan satu butir tata tertib.
+ */
 @Composable
 fun RuleCard(rule: String, onEdit: () -> Unit, onDelete: () -> Unit) {
     var showMenu by remember { mutableStateOf(false) }
@@ -279,6 +307,7 @@ fun RuleCard(rule: String, onEdit: () -> Unit, onDelete: () -> Unit) {
                 color = DarkNavyBackground,
                 fontWeight = FontWeight.Medium
             )
+            // Menu aksi (Edit/Hapus)
             Box {
                 IconButton(onClick = { showMenu = true }, modifier = Modifier.size(24.dp)) {
                     Icon(Icons.Default.MoreVert, null, tint = GrayText)
@@ -300,6 +329,9 @@ fun RuleCard(rule: String, onEdit: () -> Unit, onDelete: () -> Unit) {
     }
 }
 
+/**
+ * Komponen untuk menampilkan detail kategori (Nama, Poin, Deskripsi).
+ */
 @Composable
 fun CategoryDetailCard(
     nama: String, 
@@ -329,6 +361,7 @@ fun CategoryDetailCard(
             }
             
             Row(verticalAlignment = Alignment.CenterVertically) {
+                // Indikator Poin (Merah untuk pelanggaran, Hijau untuk prestasi)
                 Surface(
                     color = if (isNegative) Color(0xFFFFEBEE) else Color(0xFFE8F5E9),
                     shape = RoundedCornerShape(8.dp)
@@ -341,6 +374,7 @@ fun CategoryDetailCard(
                     )
                 }
                 
+                // Menu aksi (Edit/Hapus)
                 Box {
                     IconButton(onClick = { showMenu = true }) {
                         Icon(Icons.Default.MoreVert, null, tint = GrayText)
@@ -362,3 +396,4 @@ fun CategoryDetailCard(
         }
     }
 }
+

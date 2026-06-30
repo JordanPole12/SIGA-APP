@@ -1,5 +1,11 @@
 package com.example.sigaap
 
+/**
+ * BAGIAN: VIEW - LOGIN
+ * File ini menangani tampilan autentikasi pengguna (Guru).
+ * Ia mengirimkan input username/password ke ViewModel untuk divalidasi.
+ */
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -22,7 +28,7 @@ import androidx.compose.ui.unit.sp
 import com.example.sigaap.ui.theme.*
 
 @Composable
-fun LoginScreen(viewModel: PelanggaranViewModel) {
+fun LoginScreen(viewModel: PelanggaranViewModel) { // Menghubungkan ke ViewModel
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -42,6 +48,7 @@ fun LoginScreen(viewModel: PelanggaranViewModel) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            // --- LOGO & HEADER ---
             Icon(
                 Icons.Default.Security,
                 contentDescription = null,
@@ -73,6 +80,7 @@ fun LoginScreen(viewModel: PelanggaranViewModel) {
 
             Spacer(modifier = Modifier.height(48.dp))
 
+            // --- FORM LOGIN ---
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(28.dp),
@@ -97,6 +105,7 @@ fun LoginScreen(viewModel: PelanggaranViewModel) {
                     
                     Spacer(modifier = Modifier.height(32.dp))
 
+                    // Input Username terhubung ke state 'username' di ViewModel
                     OutlinedTextField(
                         value = viewModel.username.value,
                         onValueChange = { viewModel.username.value = it },
@@ -109,6 +118,7 @@ fun LoginScreen(viewModel: PelanggaranViewModel) {
 
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    // Input Password terhubung ke state 'password' di ViewModel
                     OutlinedTextField(
                         value = viewModel.password.value,
                         onValueChange = { viewModel.password.value = it },
@@ -120,6 +130,7 @@ fun LoginScreen(viewModel: PelanggaranViewModel) {
                         singleLine = true
                     )
 
+                    // Menampilkan pesan error jika login gagal (data dari ViewModel)
                     if (viewModel.loginError.value != null) {
                         Text(
                             viewModel.loginError.value!!,
@@ -132,6 +143,7 @@ fun LoginScreen(viewModel: PelanggaranViewModel) {
 
                     Spacer(modifier = Modifier.height(32.dp))
 
+                    // Tombol Login memanggil fungsi login() di ViewModel
                     Button(
                         onClick = { viewModel.login {} },
                         modifier = Modifier
@@ -147,3 +159,4 @@ fun LoginScreen(viewModel: PelanggaranViewModel) {
         }
     }
 }
+

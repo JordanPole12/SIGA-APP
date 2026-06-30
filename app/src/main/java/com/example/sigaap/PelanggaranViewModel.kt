@@ -1,5 +1,11 @@
 package com.example.sigaap
 
+/**
+ * BAGIAN: LOGIKA (VIEWMODEL)
+ * File ini adalah "Otak" aplikasi. Semua perhitungan, validasi, dan komunikasi antara
+ * tampilan (UI) dan database (Room) dilakukan di sini.
+ */
+
 import android.app.Application
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -12,11 +18,13 @@ import java.util.*
 
 class PelanggaranViewModel(application: Application) : AndroidViewModel(application) {
 
+    // Inisialisasi Database Room
     private val db = SigaapDatabase.getDatabase(application)
     private val catatanDao = db.catatanDao()
     private val kategoriDao = db.kategoriDao()
 
-    // --- LOGIN STATE ---
+    // --- LOGIKA: LOGIN STATE ---
+    // Menyimpan status apakah user sudah login dan siapa yang login
     var isLoggedIn = mutableStateOf(false)
     var username = mutableStateOf("")
     var password = mutableStateOf("")
@@ -25,6 +33,7 @@ class PelanggaranViewModel(application: Application) : AndroidViewModel(applicat
     var profileGuru = mutableStateOf(GuruProfile())
 
     fun login(onSuccess: () -> Unit) {
+        // Logika sederhana untuk pengecekan login
         if (username.value == "guru" && password.value == "1234") {
             isLoggedIn.value = true
             namaGuruAktif.value = "Bpk. Eka Prasetya, S.Kom"
@@ -47,7 +56,8 @@ class PelanggaranViewModel(application: Application) : AndroidViewModel(applicat
         password.value = ""
     }
 
-    // --- DATA STATE (Room) ---
+    // --- LOGIKA: DATA STATE (REAKTIF) ---
+    // List yang diamati oleh UI. Jika isi list ini berubah, UI akan otomatis update.
     private val _listCatatan = mutableStateListOf<CatatanSiswa>()
     val listCatatan: List<CatatanSiswa> = _listCatatan
 
@@ -56,14 +66,14 @@ class PelanggaranViewModel(application: Application) : AndroidViewModel(applicat
     val listTataTertib = mutableStateListOf<String>()
 
     init {
-        // Load data from Room
+        // LOGIKA: MENGAMBIL DATA DARI DATABASE SAAT APLIKASI DIBUKA
         viewModelScope.launch {
-            // Load Catatan
+            // Mengambil Catatan Siswa
             catatanDao.getAllCatatan().collect { list ->
                 _listCatatan.clear()
                 _listCatatan.addAll(list)
                 
-                // If empty, add mock data for first time
+                // Jika database masih kosong, isi dengan data awal (Mock Data)
                 if (list.isEmpty()) {
                     val sdf = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
                     val tgl = sdf.format(Date())
@@ -78,13 +88,12 @@ class PelanggaranViewModel(application: Application) : AndroidViewModel(applicat
         }
 
         viewModelScope.launch {
-            // Load Kategori
+            // Mengambil Kategori Pelanggaran & Prestasi
             kategoriDao.getAllKategori().collect { list ->
                 listKategoriPelanggaran.clear()
                 listKategoriPrestasi.clear()
                 
                 if (list.isEmpty()) {
-                    // Populate from MasterData
                     MasterData.daftarPelanggaran.forEach { kategoriDao.insertKategori(it) }
                     MasterData.daftarPrestasi.forEach { kategoriDao.insertKategori(it) }
                 } else {
@@ -94,11 +103,11 @@ class PelanggaranViewModel(application: Application) : AndroidViewModel(applicat
             }
         }
 
-        // Tata tertib still static for simplicity or can be moved to DB too
         listTataTertib.addAll(MasterData.tataTertibUmum)
     }
 
-    // Input Screeen Form States
+    // --- LOGIKA: FORM STATE (UI BINDING) ---
+    // Menampung apa yang diketik user di layar Input
     var tipeCatatan = mutableStateOf(TipeCatatan.PELANGGARAN)
     var nisn = mutableStateOf("")
     var namaSiswa = mutableStateOf("")
@@ -107,15 +116,15 @@ class PelanggaranViewModel(application: Application) : AndroidViewModel(applicat
     var poin = mutableStateOf(0)
     var catatan = mutableStateOf("")
 
-    // Error States
     var nisnError = mutableStateOf<String?>(null)
     var namaError = mutableStateOf<String?>(null)
     var searchQuery = mutableStateOf("")
 
-    // --- CRUD OPERATIONS ---
+    // --- LOGIKA: CRUD OPERATIONS (SIMPAN, EDIT, HAPUS) ---
     var editingId = mutableStateOf<String?>(null)
 
     fun simpanCatatan(onSuccess: () -> Unit) {
+        // Validasi Input
         var isValid = true
         if (nisn.value.isBlank()) { nisnError.value = "NISN wajib diisi"; isValid = false } else { nisnError.value = null }
         if (namaSiswa.value.isBlank()) { namaError.value = "Nama wajib diisi"; isValid = false } else { namaError.value = null }
@@ -126,6 +135,7 @@ class PelanggaranViewModel(application: Application) : AndroidViewModel(applicat
                 val currentTgl = sdf.format(Date())
                 
                 if (editingId.value == null) {
+                    // Logika Tambah Data Baru
                     val dataBaru = CatatanSiswa(
                         tipe = tipeCatatan.value,
                         nisn = nisn.value,
@@ -137,8 +147,9 @@ class PelanggaranViewModel(application: Application) : AndroidViewModel(applicat
                         namaGuruInput = namaGuruAktif.value,
                         catatanTambahan = catatan.value
                     )
-                    catatanDao.insertCatatan(dataBaru)
+                    catatanDao.insertCatatan(dataBaru) // Menyimpan ke SQLite
                 } else {
+                    // Logika Update Data Lama
                     val existing = _listCatatan.find { it.id == editingId.value }
                     if (existing != null) {
                         val updated = existing.copy(
@@ -186,6 +197,7 @@ class PelanggaranViewModel(application: Application) : AndroidViewModel(applicat
         catatan.value = ""
     }
 
+    // --- LOGIKA: FILTER PENCARIAN ---
     fun getFilteredCatatan(): List<CatatanSiswa> {
         val query = searchQuery.value.lowercase()
         return if (query.isEmpty()) _listCatatan else _listCatatan.filter {
@@ -193,7 +205,7 @@ class PelanggaranViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    // --- CRUD BUKU SAKU ---
+    // --- LOGIKA: CRUD BUKU SAKU ---
     fun addRule(rule: String) {
         listTataTertib.add(0, rule)
     }
@@ -216,7 +228,7 @@ class PelanggaranViewModel(application: Application) : AndroidViewModel(applicat
                 val oldKategori = list[index]
                 kategoriDao.updateKategori(kategori.copy(id = oldKategori.id, tipe = tipe))
 
-                // SINKRONISASI OTOMATIS
+                // Logika Sinkronisasi otomatis jika nama kategori diubah
                 _listCatatan.forEach { catatan ->
                     if (catatan.tipe == tipe && catatan.judulCatatan == oldKategori.nama) {
                         catatanDao.updateCatatan(catatan.copy(
@@ -237,7 +249,7 @@ class PelanggaranViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    // --- STATISTIK (DASHBOARD) ---
+    // --- LOGIKA: STATISTIK DASHBOARD ---
     private fun getCountInDateRange(calendarField: Int, amount: Int, tipe: TipeCatatan): Int {
         val sdfDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
         val sdfFull = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
@@ -271,3 +283,4 @@ class PelanggaranViewModel(application: Application) : AndroidViewModel(applicat
         return top?.let { "${it.key} (-${it.value})" } ?: "-"
     }
 }
+

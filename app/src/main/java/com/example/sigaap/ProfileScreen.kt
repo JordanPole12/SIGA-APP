@@ -22,8 +22,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sigaap.ui.theme.*
 
+/**
+ * VIEW LAYER: ProfileGuruScreen
+ * Menampilkan informasi profil guru yang sedang login.
+ * 
+ * Implementasi MVVM:
+ * - Mengambil data profil dari [PelanggaranViewModel.profileGuru].
+ * - Menghitung aktivitas input guru secara dinamis dari [viewModel.listCatatan].
+ * - Memicu aksi Logout melalui ViewModel.
+ */
 @Composable
 fun ProfileGuruScreen(viewModel: PelanggaranViewModel) {
+    // Mengamati state profil dari ViewModel
     val profile = viewModel.profileGuru.value
     
     Column(
@@ -32,6 +42,7 @@ fun ProfileGuruScreen(viewModel: PelanggaranViewModel) {
             .background(Color(0xFFF5F6F8))
             .verticalScroll(rememberScrollState())
     ) {
+        // Bagian Header dengan Gradien
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -48,6 +59,7 @@ fun ProfileGuruScreen(viewModel: PelanggaranViewModel) {
                     .statusBarsPadding()
             )
             
+            // Kartu Profil Utama
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -62,6 +74,7 @@ fun ProfileGuruScreen(viewModel: PelanggaranViewModel) {
                         .padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    // Placeholder Foto Profil (Lingkaran dengan Ikon Person)
                     Box(
                         modifier = Modifier
                             .size(100.dp)
@@ -104,6 +117,7 @@ fun ProfileGuruScreen(viewModel: PelanggaranViewModel) {
                     
                     Spacer(modifier = Modifier.height(20.dp))
                     
+                    // Statistik Aktivitas Guru
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -115,6 +129,7 @@ fun ProfileGuruScreen(viewModel: PelanggaranViewModel) {
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("Aktivitas", fontSize = 10.sp, color = GrayText, fontWeight = FontWeight.Bold)
+                            // Menghitung jumlah catatan yang diinput oleh guru ini
                             Text(
                                 viewModel.listCatatan.count { it.namaGuruInput == profile.nama }.toString(), 
                                 fontSize = 18.sp, 
@@ -132,6 +147,7 @@ fun ProfileGuruScreen(viewModel: PelanggaranViewModel) {
             }
         }
         
+        // Detail Informasi Akun
         Column(
             modifier = Modifier
                 .padding(horizontal = 24.dp)
@@ -152,8 +168,9 @@ fun ProfileGuruScreen(viewModel: PelanggaranViewModel) {
             
             Spacer(modifier = Modifier.height(32.dp))
             
+            // Tombol Logout
             Button(
-                onClick = { viewModel.logout() },
+                onClick = { viewModel.logout() }, // Memanggil fungsi logout di ViewModel
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -169,6 +186,9 @@ fun ProfileGuruScreen(viewModel: PelanggaranViewModel) {
     }
 }
 
+/**
+ * Komponen reusable untuk menampilkan baris informasi profil.
+ */
 @Composable
 fun ProfileItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String) {
     Row(
@@ -185,3 +205,4 @@ fun ProfileItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: St
         }
     }
 }
+
