@@ -98,7 +98,7 @@ class PelanggaranViewModel(application: Application) : AndroidViewModel(applicat
         listTataTertib.addAll(MasterData.tataTertibUmum)
     }
 
-    // Form States
+    // Input Screeen Form States
     var tipeCatatan = mutableStateOf(TipeCatatan.PELANGGARAN)
     var nisn = mutableStateOf("")
     var namaSiswa = mutableStateOf("")
